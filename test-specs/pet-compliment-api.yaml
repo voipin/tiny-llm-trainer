@@ -1,0 +1,75 @@
+openapi: 3.0.0
+info:
+  title: Pet Compliment API
+  description: A silly API for giving compliments to pets
+  version: 1.0.0
+servers:
+  - url: https://api.petcompliments.com/v1
+paths:
+  /compliments/{petType}:
+    get:
+      summary: Get a random compliment for a pet
+      parameters:
+        - name: petType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [cat, dog, hamster, fish, bird]
+          description: Type of pet to compliment
+        - name: mood
+          in: query
+          schema:
+            type: string
+            enum: [happy, sleepy, playful, grumpy]
+          description: Pet's current mood
+      responses:
+        '200':
+          description: A lovely compliment for your pet
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  compliment:
+                    type: string
+                    example: "Your fluffy cat is absolutely adorable!"
+                  petType:
+                    type: string
+                    example: "cat"
+                  mood:
+                    type: string
+                    example: "sleepy"
+  /compliments:
+    post:
+      summary: Submit a custom compliment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                petName:
+                  type: string
+                  example: "Fluffy"
+                petType:
+                  type: string
+                  enum: [cat, dog, hamster, fish, bird]
+                customCompliment:
+                  type: string
+                  example: "You're the best kitty ever!"
+      responses:
+        '201':
+          description: Compliment saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Thanks for the lovely compliment about Fluffy!"
+                  id:
+                    type: integer
+                    example: 123

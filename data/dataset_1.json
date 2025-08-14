@@ -1,0 +1,10 @@
+[
+  {
+    "input": "Get all pets",
+    "output": "{\"method\": \"GET\", \"url\": \"https://api.example.com/pets\"}"
+  },
+  {
+    "input": "Create a new pet named Fluffy",
+    "output": "{\"method\": \"POST\", \"url\": \"https://api.example.com/pets\", \"body\": {\"name\": \"Fluffy\"}}"
+  }
+]
