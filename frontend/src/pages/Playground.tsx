@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { apiClient } from '../lib/api'
+import type { TrainedModel, OpenAPISpec } from '../lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
@@ -11,6 +12,20 @@ export default function Playground() {
   const [selectedModel, setSelectedModel] = useState<number | null>(null)
   const [selectedSpec, setSelectedSpec] = useState<number | null>(null)
   const [history, setHistory] = useState<any[]>([])
+
+  // Fetch available models and specs
+  const { data: trainedModels = [] } = useQuery({
+    queryKey: ['trained-models'],
+    queryFn: () => apiClient.getTrainedModels(),
+  })
+
+  const { data: apiSpecs = [] } = useQuery({
+    queryKey: ['api-specs'],
+    queryFn: () => apiClient.getSpecs(),
+  })
+
+  const selectedModelData = trainedModels.find(m => m.id === selectedModel)
+  const selectedSpecData = apiSpecs.find(s => s.id === selectedSpec)
 
   const generateMutation = useMutation({
     mutationFn: (data: { model_id: number; spec_id: number; input_text: string }) =>
@@ -64,8 +79,11 @@ export default function Playground() {
                     onChange={(e) => setSelectedModel(Number(e.target.value))}
                   >
                     <option value="">Select a model...</option>
-                    <option value="1">SmolLM2-API-v1</option>
-                    <option value="2">SmolLM2-API-v2</option>
+                    {trainedModels.filter(m => m.is_active).map(model => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -76,8 +94,11 @@ export default function Playground() {
                     onChange={(e) => setSelectedSpec(Number(e.target.value))}
                   >
                     <option value="">Select a spec...</option>
-                    <option value="1">Petstore API</option>
-                    <option value="2">User Management API</option>
+                    {apiSpecs.filter(s => s.is_active).map(spec => (
+                      <option key={spec.id} value={spec.id}>
+                        {spec.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -209,23 +230,29 @@ export default function Playground() {
               <CardTitle>Model Info</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              {selectedModel ? (
+              {selectedModelData ? (
                 <>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Base Model:</span>
-                    <span>SmolLM2-1.7B</span>
+                    <span>{selectedModelData.base_model}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Fine-tuned:</span>
                     <span>LoRA</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Training Samples:</span>
-                    <span>10,000</span>
+                    <span className="text-muted-foreground">Model Size:</span>
+                    <span>{selectedModelData.model_size_mb.toFixed(1)} MB</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Accuracy:</span>
-                    <span>94.2%</span>
+                    <span className="text-muted-foreground">Created:</span>
+                    <span>{new Date(selectedModelData.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Status:</span>
+                    <span className={selectedModelData.is_active ? 'text-green-600' : 'text-gray-500'}>
+                      {selectedModelData.is_active ? 'Active' : 'Inactive'}
+                    </span>
                   </div>
                 </>
               ) : (

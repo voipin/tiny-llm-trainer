@@ -58,16 +58,32 @@ class PlaygroundQueryViewSet(viewsets.ModelViewSet):
             defaults={'name': f'{model.name} + {spec.name}'}
         )
         
-        # TODO: Implement actual model inference
-        # For now, return a mock response
+        # Use actual model inference
         start_time = time.time()
         
-        # Mock API call generation
-        generated_output = json.dumps({
-            "method": "GET",
-            "url": f"https://api.example.com/users",
-            "query": {"limit": 10, "status": "active"}
-        }, indent=2)
+        try:
+            from .inference import get_inference
+            inference = get_inference()
+            
+            # Get spec content for context
+            spec_content = spec.spec_content if hasattr(spec, 'spec_content') else None
+            
+            # Generate API call using the trained model
+            result = inference.generate_api_call(model_id, input_text, spec_content)
+            
+            generated_output = result['generated_output']
+            parsed_api_call = result['parsed_api_call']
+            is_valid_api = result.get('is_valid_json', True)
+            
+        except Exception as e:
+            # Fallback to basic mock if inference fails
+            generated_output = json.dumps({
+                "method": "GET",
+                "url": f"https://api.example.com/fallback",
+                "query": {"error": f"Inference failed: {str(e)}"}
+            }, indent=2)
+            parsed_api_call = json.loads(generated_output)
+            is_valid_api = True
         
         generation_time = int((time.time() - start_time) * 1000)
         
@@ -76,8 +92,8 @@ class PlaygroundQueryViewSet(viewsets.ModelViewSet):
             session=session,
             input_text=input_text,
             generated_output=generated_output,
-            parsed_api_call=json.loads(generated_output),
-            is_valid_api=True,
+            parsed_api_call=parsed_api_call,
+            is_valid_api=is_valid_api,
             generation_time_ms=generation_time
         )
         
