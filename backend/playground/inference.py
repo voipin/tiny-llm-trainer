@@ -75,7 +75,7 @@ class ModelInference:
         prompt_lower = prompt.lower()
         
         # Analyze prompt for HTTP method
-        if any(word in prompt_lower for word in ['create', 'add', 'new', 'post']):
+        if any(word in prompt_lower for word in ['create', 'add', 'new', 'post', 'submit']):
             method = "POST"
         elif any(word in prompt_lower for word in ['update', 'modify', 'change', 'put', 'patch']):
             method = "PUT"
@@ -85,19 +85,18 @@ class ModelInference:
             method = "GET"
         
         # Analyze prompt for endpoint
-        if 'pet' in prompt_lower:
-            if 'compliment' in prompt_lower:
-                url = "https://api.petcompliments.com/v1/compliments"
-                if method == "GET":
-                    # Extract pet type if mentioned
-                    for pet_type in ['cat', 'dog', 'hamster', 'fish', 'bird']:
-                        if pet_type in prompt_lower:
-                            url += f"/{pet_type}"
-                            break
-                    else:
-                        url += "/cat"  # default
-            else:
-                url = "https://api.example.com/pets"
+        if 'compliment' in prompt_lower:
+            url = "https://api.petcompliments.com/v1/compliments"
+            if method == "GET":
+                # Extract pet type if mentioned
+                for pet_type in ['cat', 'dog', 'hamster', 'fish', 'bird']:
+                    if pet_type in prompt_lower:
+                        url += f"/{pet_type}"
+                        break
+                else:
+                    url += "/cat"  # default
+        elif any(pet_type in prompt_lower for pet_type in ['cat', 'dog', 'hamster', 'fish', 'bird', 'pet']):
+            url = "https://api.example.com/pets"
         elif 'user' in prompt_lower:
             url = "https://api.example.com/users"
         else:
@@ -126,19 +125,21 @@ class ModelInference:
                 elif 'completed' in prompt_lower:
                     query_params['status'] = 'completed'
             
-            if 'mood' in prompt_lower:
-                for mood in ['happy', 'sleepy', 'playful', 'grumpy']:
-                    if mood in prompt_lower:
-                        query_params['mood'] = mood
-                        break
+            # Check for mood words directly
+            for mood in ['happy', 'sleepy', 'playful', 'grumpy']:
+                if mood in prompt_lower:
+                    query_params['mood'] = mood
+                    break
             
             if query_params:
-                response['query'] = query_params
+                # Build query string
+                query_string = '&'.join([f"{k}={v}" for k, v in query_params.items()])
+                response['url'] += f"?{query_string}"
                 
         elif method in ["POST", "PUT"]:
             body = {}
-            if 'name' in prompt_lower:
-                # Try to extract name
+            if 'name' in prompt_lower and 'compliment' not in prompt_lower:
+                # Try to extract name (but not for compliment requests which have petName)
                 import re
                 name_match = re.search(r'name (\w+)', prompt_lower)
                 if name_match:
@@ -153,8 +154,33 @@ class ModelInference:
                     body['email'] = email_match.group(1)
             
             if 'compliment' in prompt_lower:
-                body['customCompliment'] = "You're an amazing pet!"
-                body['petType'] = 'cat'
+                # Extract pet name if mentioned
+                import re
+                name_match = re.search(r'named (\w+)', prompt_lower)
+                if name_match:
+                    body['petName'] = name_match.group(1)
+                else:
+                    body['petName'] = 'Fluffy'
+                
+                # Extract pet type
+                for pet_type in ['cat', 'dog', 'hamster', 'fish', 'bird']:
+                    if pet_type in prompt_lower:
+                        body['petType'] = pet_type
+                        break
+                else:
+                    body['petType'] = 'cat'
+                
+                # Extract custom compliment text - more flexible regex
+                saying_match = re.search(r'saying [\'"]?([^\'\"]+?)[\'"]?$', prompt_lower)
+                if not saying_match:
+                    # Try alternative patterns
+                    saying_match = re.search(r'saying (.+)', prompt_lower)
+                
+                if saying_match:
+                    compliment_text = saying_match.group(1).strip('\'"')
+                    body['customCompliment'] = compliment_text
+                else:
+                    body['customCompliment'] = "You're an amazing pet!"
             
             if body:
                 response['body'] = body

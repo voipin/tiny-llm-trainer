@@ -5,7 +5,7 @@ import type { TrainedModel, OpenAPISpec } from '../lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
-import { Play, Send, Copy, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { Play, Send, Copy, CheckCircle, XCircle, Clock, Lightbulb } from 'lucide-react'
 
 export default function Playground() {
   const [inputText, setInputText] = useState('')
@@ -199,27 +199,160 @@ export default function Playground() {
 
         {/* Info Panel */}
         <div className="space-y-4">
+          {/* Examples for Pet Compliment API */}
           <Card>
             <CardHeader>
-              <CardTitle>Tips</CardTitle>
+              <CardTitle className="flex items-center">
+                <Lightbulb className="h-4 w-4 mr-2 text-yellow-500" />
+                Try These Examples
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Examples for Pet Compliment API models
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              <div className="space-y-3">
+                <div className="border border-border rounded-lg p-3">
+                  <div className="mb-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-6 px-2"
+                      onClick={() => setInputText("Get a compliment for my sleepy cat")}
+                    >
+                      Try this →
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="font-medium text-blue-600">Prompt:</span>
+                      <p className="text-muted-foreground">"Get a compliment for my sleepy cat"</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-green-600">Expected:</span>
+                      <pre className="text-xs bg-muted p-2 rounded mt-1 overflow-x-auto">
+{`{
+  "method": "GET",
+  "url": "https://api.petcompliments.com/v1/compliments/cat?mood=sleepy"
+}`}
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border border-border rounded-lg p-3">
+                  <div className="mb-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-6 px-2"
+                      onClick={() => setInputText("Get a compliment for a playful dog")}
+                    >
+                      Try this →
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="font-medium text-blue-600">Prompt:</span>
+                      <p className="text-muted-foreground">"Get a compliment for a playful dog"</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-green-600">Expected:</span>
+                      <pre className="text-xs bg-muted p-2 rounded mt-1 overflow-x-auto">
+{`{
+  "method": "GET",
+  "url": "https://api.petcompliments.com/v1/compliments/dog?mood=playful"
+}`}
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border border-border rounded-lg p-3">
+                  <div className="mb-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-6 px-2"
+                      onClick={() => setInputText("Submit a custom compliment for my hamster named Peanut saying 'You're the cutest little guy!'")}
+                    >
+                      Try this →
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="font-medium text-blue-600">Prompt:</span>
+                      <p className="text-muted-foreground">"Submit a custom compliment for my hamster named Peanut saying 'You're the cutest little guy!'"</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-green-600">Expected:</span>
+                      <pre className="text-xs bg-muted p-2 rounded mt-1 overflow-x-auto">
+{`{
+  "method": "POST",
+  "url": "https://api.petcompliments.com/v1/compliments",
+  "body": {
+    "petName": "Peanut",
+    "petType": "hamster",
+    "customCompliment": "You're the cutest little guy!"
+  }
+}`}
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border border-border rounded-lg p-3">
+                  <div className="mb-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-6 px-2"
+                      onClick={() => setInputText("Get a random compliment for my bird")}
+                    >
+                      Try this →
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="font-medium text-blue-600">Prompt:</span>
+                      <p className="text-muted-foreground">"Get a random compliment for my bird"</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-green-600">Expected:</span>
+                      <pre className="text-xs bg-muted p-2 rounded mt-1 overflow-x-auto">
+{`{
+  "method": "GET",
+  "url": "https://api.petcompliments.com/v1/compliments/bird"
+}`}
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Tips for Good Prompts</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div>
-                <h4 className="font-medium mb-1">Good Examples:</h4>
+                <h4 className="font-medium mb-1">Be Specific:</h4>
                 <ul className="text-muted-foreground space-y-1">
-                  <li>• "Get user with ID 123"</li>
-                  <li>• "Create a new pet with name Fluffy"</li>
-                  <li>• "List all orders with status pending"</li>
-                  <li>• "Update user 456 with email john@example.com"</li>
+                  <li>• Mention the pet type (cat, dog, hamster, fish, bird)</li>
+                  <li>• Include mood when relevant (happy, sleepy, playful, grumpy)</li>
+                  <li>• Specify pet names for custom compliments</li>
+                  <li>• Use natural language that describes your intent</li>
                 </ul>
               </div>
               
               <div>
-                <h4 className="font-medium mb-1">Be Specific:</h4>
+                <h4 className="font-medium mb-1">Model Training:</h4>
                 <ul className="text-muted-foreground space-y-1">
-                  <li>• Include parameter values</li>
-                  <li>• Specify filters and limits</li>
-                  <li>• Mention required fields</li>
+                  <li>• Models learn from task→API mapping examples</li>
+                  <li>• Better training data = more accurate API calls</li>
+                  <li>• Test edge cases to validate model performance</li>
                 </ul>
               </div>
             </CardContent>

@@ -9,6 +9,7 @@ import { Plus, FileText, Calendar, Hash } from 'lucide-react'
 export default function Specs() {
   const [showUploadDialog, setShowUploadDialog] = useState(false)
   const [showDatasetDialog, setShowDatasetDialog] = useState(false)
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false)
   const [selectedSpec, setSelectedSpec] = useState<any>(null)
   const [datasetForm, setDatasetForm] = useState({
     name: '',
@@ -89,6 +90,11 @@ export default function Specs() {
       }
       reader.readAsText(file)
     }
+  }
+
+  const handleViewDetails = (spec: any) => {
+    setSelectedSpec(spec)
+    setShowDetailsDialog(true)
   }
 
   const handleGenerateDataset = (spec: any) => {
@@ -175,7 +181,12 @@ export default function Specs() {
                 </div>
 
                 <div className="flex space-x-2 pt-2">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleViewDetails(spec)}
+                  >
                     View Details
                   </Button>
                   <Button 
@@ -348,6 +359,78 @@ export default function Specs() {
                     disabled={generateDatasetMutation.isPending}
                   >
                     {generateDatasetMutation.isPending ? 'Generating...' : 'Generate'}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Details Dialog */}
+      {showDetailsDialog && selectedSpec && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-xl">{selectedSpec.name}</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {selectedSpec.description || 'No description provided'}
+                  </p>
+                </div>
+                <Badge variant={selectedSpec.is_active ? 'default' : 'secondary'}>
+                  {selectedSpec.is_active ? 'Active' : 'Inactive'}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="overflow-auto">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Endpoints:</span> {selectedSpec.endpoint_count}
+                  </div>
+                  <div>
+                    <span className="font-medium">Version:</span> {selectedSpec.version || 'N/A'}
+                  </div>
+                  <div>
+                    <span className="font-medium">Created:</span> {new Date(selectedSpec.created_at).toLocaleString()}
+                  </div>
+                  <div>
+                    <span className="font-medium">ID:</span> {selectedSpec.id}
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium mb-2">OpenAPI Specification</h4>
+                  <div className="bg-muted p-4 rounded-md overflow-auto max-h-96">
+                    <pre className="text-xs whitespace-pre-wrap font-mono">
+                      {typeof selectedSpec.spec_content === 'string' 
+                        ? selectedSpec.spec_content 
+                        : JSON.stringify(selectedSpec.spec_content, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+                
+                <div className="flex space-x-2 pt-4">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      setShowDetailsDialog(false)
+                      setSelectedSpec(null)
+                    }}
+                  >
+                    Close
+                  </Button>
+                  <Button 
+                    className="flex-1"
+                    onClick={() => {
+                      setShowDetailsDialog(false)
+                      handleGenerateDataset(selectedSpec)
+                    }}
+                  >
+                    Generate Dataset
                   </Button>
                 </div>
               </div>
